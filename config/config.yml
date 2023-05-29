@@ -1,7 +1,7 @@
 params:
   keep_tmp_files: True
+  buffer_output: True
 
 paths:
-  maya_tdd: D:\Users\Bernat Mas\AA_PERSONAL_PROJECTS\maya_tdd_suite
-  tests: D:\Users\Bernat Mas\AA_PERSONAL_PROJECTS\maya_tdd_suite\tests
-  tmp: D:\Users\Bernat Mas\AA_PERSONAL_PROJECTS\maya_tdd_suite\tests\tmp
+  tests: tests  # relative to your project's root directory
+  tmp: ${tests}/tmp

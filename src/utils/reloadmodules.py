@@ -26,14 +26,14 @@ class RollbackImporter(object):
                 del (sys.modules[modname])
 
 
-_rollbackimporter = RollbackImporter()
+_rollback_importer = RollbackImporter()
 
 
 def save_modules():
-    global _rollbackimporter
-    _rollbackimporter = RollbackImporter()
+    global _rollback_importer
+    _rollback_importer = RollbackImporter()
 
 
 def reload_modules():
-    global _rollbackimporter
-    _rollbackimporter.uninstall()
+    global _rollback_importer
+    _rollback_importer.uninstall()

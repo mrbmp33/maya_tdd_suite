@@ -5,7 +5,7 @@ import shutil
 import tempfile
 import uuid
 from typing import Dict, Optional
-
+import src
 from src.utils import config_loader
 
 _config = config_loader.load_config()
@@ -63,21 +63,21 @@ def create_clean_maya_app_dir(directory: Optional[str] = None) -> str:
     Returns:
         str: The path to the clean MAYA_APP_DIR folder.
     """
-    app_dir = pathlib.Path(_config['paths']['maya_tdd']) / 'clean_maya_app_dir'
+    app_dir = pathlib.Path(os.environ['MAYA_TDD_ROOT_DIR']).resolve() / 'clean_maya_app_dir'
     temp_dir = pathlib.Path(tempfile.gettempdir())
     
     if not temp_dir.exists():
         temp_dir.mkdir()
     
-    destination = pathlib.Path(directory or temp_dir / f'maya_app_dir_{uuid.uuid4()}')
+    destination = pathlib.Path(directory or temp_dir / f'maya_app_dir_{uuid.uuid4()}').resolve()
     
     if destination.exists():
         shutil.rmtree(str(destination), ignore_errors=False)
     
     # Copy all the contents from the app_dir to the destination folder
-    shutil.copytree(app_dir, destination)
+    shutil.copytree(app_dir, destination, symlinks=False)
     
-    return destination
+    return str(destination)
 
 
 if __name__ == '__main__':
