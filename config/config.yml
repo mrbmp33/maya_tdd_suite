@@ -3,5 +3,5 @@ params:
   buffer_output: True
 
 paths:
-  tests: tests  # relative to your project's root directory
-  tmp: ${tests}/tmp
+  tests: $ENV{MAYA_TDD_ROOT_DIR}/tests  # relative to your project's root directory
+  tmp: ${paths.tests}/tests/tmp

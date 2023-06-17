@@ -43,17 +43,18 @@ def get_tests(directories: List[str] = None, specific_test: str = None, test_sui
     Returns:
          TestSuite: The populated TestSuite.
     """
-    if directories is None:
+    if not directories:
         directories = maya_module_tests()
 
     # Populate a TestSuite with all the tests
-    if test_suite is None:
+    if not TestSuite:
         test_suite = TestSuite()
 
     if specific_test:
         # Find the specified test to run
         directories_added_to_path = [p for p in directories if add_to_path(p)]
         discovered_suite = TestLoader().loadTestsFromName(specific_test)
+
         if discovered_suite.countTestCases():
             test_suite.addTests(discovered_suite)
     else:
@@ -100,7 +101,7 @@ def run_tests_from_command_line():
     from utils.standalone_context import MayaStandalone
 
     with MayaStandalone():
-        # Populate missing variables from mayapy's sys.path
+        print(_config['paths']['tests'])
         run_tests(directories=_config['paths']['tests'])
 
 
