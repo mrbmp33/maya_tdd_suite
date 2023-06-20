@@ -8,7 +8,7 @@ import os
 import maya.cmds as mc
 from utils import config_loader
 
-_config = config_loader.load_config(os.environ['TDD_CONFIG_FILE'])
+_config = config_loader.load_config()
 
 
 class MayaTestCase(unittest.TestCase):

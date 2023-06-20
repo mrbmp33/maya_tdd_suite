@@ -1,7 +1,7 @@
 import os
 import sys
 from unittest import TextTestRunner, TestSuite, TestResult, TestLoader, TestCase
-from typing import List
+from typing import List, Iterable, Optional
 
 from utils import config_loader
 
@@ -31,29 +31,35 @@ def maya_module_tests():
             yield p
 
 
-def get_tests(directories: List[str] = None, specific_test: str = None, test_suite: TestSuite = None) -> TestSuite:
+def get_tests(directories: Iterable[str] = None,
+              specific_test: Optional[str] = None,
+              test_suite: Optional[TestSuite] = None) -> TestSuite:
     """Get a *unittest.TestSuite* containing all the desired tests.
 
     Args:
-        directories (List[str]): Optional list of directories with which to search for tests.  If omitted, use all
-            "tests" directories of the modules found in the MAYA_MODULE_PATH.
-        specific_test (str): Optional test path to find a specific test such as 'test_mytest.SomeTestCase.test_function'.
-        test_suite (TestSuite): Optional unittest.TestSuite to add the discovered tests to.  If omitted a new TestSuite
-            will be created.
+        directories (Iterable[str]): Optional list of directories with which to search for tests. If omitted, use all
+            "tests" directories of the packages found in the MAYA_MODULE_PATH.
+
+        specific_test (Optional[str]): Optional test path to find a specific test such as
+            'test_mytest.SomeTestCase.test_function'.
+
+        test_suite (Optional[TestSuite]): Optional unittest.TestSuite to add the discovered tests to.  If omitted a new
+            TestSuite will be created.
     Returns:
          TestSuite: The populated TestSuite.
     """
-    if directories is None:
+    if not directories:
         directories = maya_module_tests()
 
     # Populate a TestSuite with all the tests
-    if test_suite is None:
+    if not test_suite:
         test_suite = TestSuite()
 
     if specific_test:
         # Find the specified test to run
         directories_added_to_path = [p for p in directories if add_to_path(p)]
         discovered_suite = TestLoader().loadTestsFromName(specific_test)
+
         if discovered_suite.countTestCases():
             test_suite.addTests(discovered_suite)
     else:
@@ -74,17 +80,19 @@ def get_tests(directories: List[str] = None, specific_test: str = None, test_sui
 # ==== TEST EXECUTION ==================================================================================================
 
 
-def run_tests(directories: List[str] = None, test: str = None, test_suite: TestSuite = None):
+def run_tests(directories: Iterable[str] = None,
+              specific_test: Optional[str] = None,
+              test_suite: Optional[TestSuite] = None):
     """Run all the tests in the given paths.
 
     Args:
-        directories (List[str]): A generator or list of paths containing tests to run.
-        test (TestCase): Optional name of a specific test to run.
+        directories (Iterable[str]): A generator or list of paths containing tests to run.
+        specific_test (TestCase): Optional name of a specific test to run.
         test_suite (TestSuite): Optional TestSuite to run.  If omitted, a TestSuite will be generated.
     """
 
     if test_suite is None:
-        test_suite = get_tests(directories, test)
+        test_suite = get_tests(directories, specific_test)
 
     runner = TextTestRunner(verbosity=2, resultclass=TestResult)
     runner.failfast = False
@@ -97,11 +105,10 @@ def run_tests_from_command_line():
 
     This is called when running *src/main.py* from the command line.
     """
-    from utils.standalone_context import MayaStandalone
+    from utils.standalone_context import MayaStandaloneContext
 
-    with MayaStandalone():
-        # Populate missing variables from mayapy's sys.path
-        run_tests(directories=_config['paths']['tests'])
+    with MayaStandaloneContext(mute_logger='userSetup'):
+        run_tests(directories=_config['paths']['tests'] or [_config['paths']['default_tests']])
 
 
 if __name__ == '__main__':
