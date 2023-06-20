@@ -23,7 +23,7 @@ def merge_path():
             sys.path.insert(0, each)
 
 
-class MayaStandalone:
+class MayaStandaloneContext:
     """Context manager for automatically initializing and un-initializing maya. Beware of incompatibilities with scripts
     running in your *userSetup.py*". If they crash, it will prevent Maya from initializing and un-initializing.
 
