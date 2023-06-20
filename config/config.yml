@@ -3,5 +3,6 @@ params:
   buffer_output: True
 
 paths:
-  tests: tests  # relative to your project's root directory
-  tmp: ${tests}/tmp
+  default_tests: $ENV{MAYA_TDD_ROOT_DIR}/tests  # default location to find tests. It points to this package by default, but not necessarily
+  tests: []  # All directories that will be inspected to find tests.
+  tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp  # Temporary location for files that get generated from tests and must be deleted after the execution
