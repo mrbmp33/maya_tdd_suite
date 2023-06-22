@@ -1,0 +1,7 @@
+maya-mock-completion==0.0.1
+packaging==23.1
+PySide2==5.15.2.1
+python-dotenv==1.0.0
+PyYAML==6.0
+QtPy==2.3.1
+shiboken2==5.15.2.1
