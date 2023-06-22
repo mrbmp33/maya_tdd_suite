@@ -7,7 +7,6 @@ import subprocess
 import sys
 
 root_dir = str(pathlib.Path(__file__).parent.parent.resolve())
-
 if root_dir not in sys.path:
     sys.path.append(root_dir)
     os.environ.setdefault('MAYA_TDD_ROOT_DIR', root_dir)
@@ -21,7 +20,9 @@ def main():
         """
     from src.run_tests import run_tests
     from src.utils import maya_locations, config_loader
-    
+
+    _config = config_loader.load_config()
+
     # Define and get the arguments from the command line
     parser = argparse.ArgumentParser(description='Runs unit tests for a Maya module')
     parser.add_argument('-m', '--maya', help='Maya version', type=int, default=2022)
@@ -45,8 +46,8 @@ def main():
     os.environ['MAYA_SCRIPT_PATH'] = ''
     
     # Paths to inspect.
-    tests_dirs: list = config_loader.load_config()['paths']['tests']
-    os.environ['MAYA_MODULE_PATH'] = f"{os.pathsep}".join(tests_dirs)
+    tests_dirs: list = _config['paths']['tests'] or [_config['paths']['default_tests']]
+    os.environ.setdefault('MAYA_MODULE_PATH', f"{os.pathsep}".join(tests_dirs))
     
     try:
         subprocess.check_call(cmd)
