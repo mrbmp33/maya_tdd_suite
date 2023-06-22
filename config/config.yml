@@ -1,6 +1,7 @@
 params:
   keep_tmp_files: True
   buffer_output: True
+  file_new: True
 
 paths:
   default_tests: $ENV{MAYA_TDD_ROOT_DIR}/tests  # default location to find tests. It points to this package by default, but not necessarily

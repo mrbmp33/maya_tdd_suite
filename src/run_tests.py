@@ -1,7 +1,8 @@
 import os
 import sys
-from unittest import TextTestRunner, TestSuite, TestResult, TestLoader, TestCase
-from typing import List, Iterable, Optional
+from typing import Iterable, Optional
+from unittest import TextTestRunner, TestSuite, TestLoader, TestCase
+from maya_test_result import MayaTestResult
 
 from utils import config_loader
 
@@ -94,7 +95,7 @@ def run_tests(directories: Iterable[str] = None,
     if test_suite is None:
         test_suite = get_tests(directories, specific_test)
 
-    runner = TextTestRunner(verbosity=2, resultclass=TestResult)
+    runner = TextTestRunner(verbosity=2, resultclass=MayaTestResult)
     runner.failfast = False
     runner.buffer = _config['params']['buffer_output']
     runner.run(test_suite)
