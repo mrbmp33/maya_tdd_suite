@@ -33,6 +33,21 @@ def load_config(config_file: str = None) -> dict:
     return config
 
 
+def write_to_config(new_values: dict, config_file: str = None):
+    """Writes to the config file of choice.
+
+    It will overwrite the difference between both dictionaries that make up the configuration.
+    """
+
+    config_file = config_file or pathlib.Path(os.getenv('TDD_CONFIG_FILE', find_config()))
+
+    conf = load_config(config_file=config_file)
+    conf.update(new_values)
+
+    with open(str(config_file), "w") as f:
+        yaml.safe_dump(conf, f)
+
+
 if __name__ == '__main__':
     from pprint import pprint
     pprint(load_config())

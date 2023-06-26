@@ -109,7 +109,7 @@ def run_tests_from_command_line():
     from utils.standalone_context import MayaStandaloneContext
 
     with MayaStandaloneContext(mute_logger='userSetup'):
-        run_tests(directories=_config['paths']['tests'] or [_config['paths']['default_tests']])
+        run_tests(directories=_config['paths']['tests'] or [_config['default_tests']])
 
 
 if __name__ == '__main__':

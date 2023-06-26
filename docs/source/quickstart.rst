@@ -3,13 +3,14 @@ Configuration Variables
 
 These should be set by interacting with the UI. Here's what they do.
 
+- default_tests (str): Default directory to find tests. It points to this package by default, but not necessarily.
+
 - params:
     - keep_tmp_files (True): Either if you want to preserve the tmp files after each test execution.
     - buffer_output (True): If you want to display the output of the tests at the end or inbetween tests.
     - new_file (True): Whether or not you want to create a new file before running a test.
 
 - paths:
-    - default_tests (str): Default directory to find tests. It points to this package by default, but not necessarily.
     - tests (list): All directories that will be inspected to find tests.
     - tmp (str): Temporary location for files that get generated from tests and must be deleted after the execution.
 

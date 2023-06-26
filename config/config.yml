@@ -1,9 +1,10 @@
+default_tests: $ENV{MAYA_TDD_ROOT_DIR}/tests  # default location to find tests. It points to this package by default, but not necessarily
+
 params:
   keep_tmp_files: True
   buffer_output: True
   file_new: True
 
 paths:
-  default_tests: $ENV{MAYA_TDD_ROOT_DIR}/tests  # default location to find tests. It points to this package by default, but not necessarily
   tests: []  # All directories that will be inspected to find tests.
   tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp  # Temporary location for files that get generated from tests and must be deleted after the execution

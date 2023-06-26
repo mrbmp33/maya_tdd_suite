@@ -46,7 +46,7 @@ def main():
     os.environ['MAYA_SCRIPT_PATH'] = ''
     
     # Paths to inspect.
-    tests_dirs: list = _config['paths']['tests'] or [_config['paths']['default_tests']]
+    tests_dirs: list = _config['paths']['tests'] or [_config['default_tests']]
     os.environ.setdefault('MAYA_MODULE_PATH', f"{os.pathsep}".join(tests_dirs))
     
     try:
