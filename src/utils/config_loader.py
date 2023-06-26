@@ -17,7 +17,7 @@ def find_config() -> str:
     return str(config_file)
 
 
-def load_config(config_file: str = None) -> dict:
+def load_config(config_file: str = None, resolve_vars=True) -> dict:
     """Loads a given yaml file for configuration. If none is passed it will automatically fall back to the environment
     variable <*TDD_CONFIG_FILE*> that holds the path to the package config file."""
 
@@ -28,7 +28,10 @@ def load_config(config_file: str = None) -> dict:
         raise EnvironmentError(f'Given config file <{config_file}> does not exist!')
 
     with open(str(config_file), "r") as f:
-        config_content = parsing_utils.preprocess_yaml_with_env_variables(f.read())
+        if resolve_vars:
+            config_content = parsing_utils.preprocess_yaml_with_env_variables(f.read())
+        else:
+            config_content = f.read()
         config = yaml.safe_load(config_content)
     return config
 
@@ -41,7 +44,7 @@ def write_to_config(new_values: dict, config_file: str = None):
 
     config_file = config_file or pathlib.Path(os.getenv('TDD_CONFIG_FILE', find_config()))
 
-    conf = load_config(config_file=config_file)
+    conf = load_config(config_file=config_file, resolve_vars=False)
     conf.update(new_values)
 
     with open(str(config_file), "w") as f:

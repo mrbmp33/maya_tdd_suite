@@ -5,7 +5,6 @@ from qtpy import QtWidgets, QtGui
 from qtpy.uic import loadUi
 from src.utils.config_loader import load_config, write_to_config
 
-_config = load_config()
 
 
 class SettingsDialog(QtWidgets.QDialog):
@@ -29,6 +28,8 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def load_settings(self):
         """Sets the state of the settings UI to be the same as the contents of the configuration file."""
+
+        _config = load_config(resolve_vars=False)
 
         # Tests directory
         self.tests_paths_lw.reset()
