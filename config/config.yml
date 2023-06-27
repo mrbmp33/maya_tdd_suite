@@ -1,4 +1,5 @@
 default_tests: $ENV{MAYA_TDD_ROOT_DIR}/tests
+default_tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp
 params:
   buffer_output: true
   file_new: true

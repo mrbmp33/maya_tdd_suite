@@ -47,6 +47,8 @@ class SettingsDialog(QtWidgets.QDialog):
     def save_settings(self):
         """Saves the UI state to the settings file."""
 
+        _config = load_config(resolve_vars=False)
+
         write_to_config(
             {
                 'params': {
@@ -56,7 +58,7 @@ class SettingsDialog(QtWidgets.QDialog):
                 },
                 'paths': {
                     'tests': [self.tests_paths_lw.item(index).text() for index in range(self.tests_paths_lw.count())],
-                    'tmp': self.tmp_files_dir_le.text(),
+                    'tmp': self.tmp_files_dir_le.text() or _config['default_tmp'],
                 }
 
             }
