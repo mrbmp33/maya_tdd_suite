@@ -5,5 +5,6 @@ params:
   file_new: true
   keep_tmp_files: true
 paths:
-  tests: []
+  tests:
+  - D:\Users\Bernat Mas\AA_PERSONAL_PROJECTS\maya_tdd_suite\tests
   tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp
