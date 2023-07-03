@@ -1,5 +1,6 @@
 from typing import Optional
 from pathlib import Path
+from functools import partial
 
 from qtpy import QtWidgets, QtGui, QtCore
 from qtpy.uic import loadUi
@@ -12,15 +13,27 @@ class TestsDirWidget(QtWidgets.QWidget):
         
         self.paths_view: Optional[QtWidgets.QListView] = None
         self.paths_model: Optional[QtCore.QStringListModel] = None
+        
+        self.add_path_btn: Optional[QtWidgets.QPushButton] = None
+        self.remove_path_btn: Optional[QtWidgets.QPushButton] = None
 
         # Load from UI file
         loadUi(str(Path(__file__).parent / 'designer' / 'tests_paths_widget.ui'), self)
+        
+        self._make_button_connections()
         
     def _add_path(self):
         ...
     
     def _remove_path(self):
         ...
+    
+    def _make_button_connections(self):
+        self.add_path_btn: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'add_path_btn')
+        self.remove_path_btn: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'remove_path_btn')
+        
+        self.add_path_btn.connect(partial(self._add_path))
+        self.remove_path_btn.connect(partial(self._remove_path))
         
 
 class SettingsDialog(QtWidgets.QDialog):
