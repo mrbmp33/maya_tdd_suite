@@ -29,7 +29,11 @@
    <item>
     <layout class="QHBoxLayout" name="paths_hlo">
      <item>
-      <widget class="QListWidget" name="tests_paths_ls"/>
+      <widget class="QListView" name="tests_paths_ls">
+       <property name="alternatingRowColors">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
      <item>
       <layout class="QVBoxLayout" name="paths_sidebar_vlo">

@@ -7,4 +7,5 @@ params:
 paths:
   tests:
   - D:\Users\Bernat Mas\AA_PERSONAL_PROJECTS\maya_tdd_suite\tests
+  - somehting_different
   tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp
