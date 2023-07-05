@@ -30,8 +30,14 @@
     <layout class="QHBoxLayout" name="paths_hlo">
      <item>
       <widget class="QListView" name="tests_paths_ls">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
        <property name="alternatingRowColors">
         <bool>true</bool>
+       </property>
+       <property name="selectionBehavior">
+        <enum>QAbstractItemView::SelectColumns</enum>
        </property>
       </widget>
      </item>
