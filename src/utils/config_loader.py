@@ -1,7 +1,7 @@
 import pathlib
 import os
 import yaml
-from utils import parsing_utils
+from . import parsing_utils
 
 
 def find_config() -> str:
