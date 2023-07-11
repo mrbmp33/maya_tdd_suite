@@ -3,8 +3,14 @@ from typing import Optional
 from pathlib import Path
 from qtpy import QtWidgets, QtGui, QtCore
 from qtpy.uic import loadUi
-from src.utils.config_loader import load_config, write_to_config
 
+from src.utils.config_loader import load_config, write_to_config
+from src.utils import rollback_importer
+from src import run_tests
+from . import model_structure
+
+
+# ==== SETTINGS-RELATED UIS ============================================================================================
 
 class TestsDirWidget(QtWidgets.QWidget):
 
@@ -14,8 +20,8 @@ class TestsDirWidget(QtWidgets.QWidget):
         # Load from UI file
         loadUi(str(Path(__file__).parent / 'designer' / 'tests_paths_widget.ui'), self)
 
+        # noinspection PyTypeChecker
         self.paths_view: Optional[QtWidgets.QListView] = self.findChild(QtWidgets.QListView, 'tests_paths_ls')
-
         self.add_path_btn: Optional[QtWidgets.QPushButton] = None
         self.remove_path_btn: Optional[QtWidgets.QPushButton] = None
 
@@ -94,8 +100,11 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def _load_uis(self):
         loadUi(str(Path(__file__).parent / 'designer' / 'settings_widget.ui'), self)
-        anchor_widget = self.findChild(QtWidgets.QWidget, 'tests_promote_wid')
-        anchor_layout = QtWidgets.QVBoxLayout(anchor_widget)
+
+        # noinspection PyTypeChecker
+        anchor_widget: QtWidgets.QWidget = self.findChild(QtWidgets.QWidget, 'tests_promote_wid')
+        anchor_layout = QtWidgets.QVBoxLayout()
+        anchor_widget.setLayout(anchor_layout)
 
         self.tests_paths_wid = TestsDirWidget()
         self.tests_paths_view = self.tests_paths_wid.findChild(QtWidgets.QListView, 'tests_paths_ls')
@@ -155,8 +164,50 @@ class SettingsDialog(QtWidgets.QDialog):
         super().closeEvent(event)
 
 
-# ==== SETTINGS-RELATED UIS ============================================================================================
+# ==== MAIN UI DEFINITION ==============================================================================================
 
+class TestsRunnerController:
+    """In charge of manipulating the model."""
+
+    instance = None
+
+    def __new__(cls, *args, **kwargs):
+        """Singleton to ensure only one controller exists at a time."""
+        if not cls.instance():
+            cls.instance = TestsRunnerController()
+        return cls.instance
+
+    def __init__(self):
+        self.rollback_importer = rollback_importer.RollbackImporter()
+        self.reload_model()
+
+    def reload_model(self):
+        """Re-inspects all the directories looking for new tests to run and reloads the latest version of the code."""
+        self.reset_rollback_importer()
+        test_suite = run_tests.get_tests()
+
+        # Reset model population
+        root_node = model_structure.BaseTreeNode()
+        self.model = QtCore.QAbstractItemModel()
+
+    def run_all_tests(self):
+        ...
+
+    def run_selected_tests(self, indices):
+        ...
+
+    def run_failed_tests(self):
+        ...
+
+    def reset_rollback_importer(self):
+        """Resets the RollbackImporter which allows the test runner to pick up code updates without having to reload
+        anything."""
+
+        if self.rollback_importer:
+            self.rollback_importer.uninstall()
+
+        # Create a new rollback importer to pick up any code updates
+        self.rollback_importer = rollback_importer.RollbackImporter()
 
 class MayaTestRunnerDialog(QtWidgets.QDialog):
     """Actual widget that will be implanted inside the base container for the UI.
@@ -165,5 +216,25 @@ class MayaTestRunnerDialog(QtWidgets.QDialog):
     """
     ...
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None, *args, **kwargs):
+        super(MayaTestRunnerDialog, self).__init__(parent=parent, *args, **kwargs)
+
+        self.run_all_btn: Optional[QtWidgets.QPushButton] = None
+        self.run_selected_btn: Optional[QtWidgets.QPushButton] = None
+        self.run_failed_btn: Optional[QtWidgets.QPushButton] = None
+
+        loadUi(str(Path(__file__).parent / 'designer' / 'tests_runner_widget.ui'), self)
+
+        # Add icons to buttons
+        self.run_all_btn.setIcon(QtGui.QIcon(QtGui.QPixmap(
+            str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_all_tests.png'))))
+        self.run_selected_btn.setIcon(QtGui.QIcon(QtGui.QPixmap(
+            str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_selected_tests.png'))))
+        self.run_failed_btn.setIcon(QtGui.QIcon(QtGui.QPixmap(
+            str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_failed_tests.png'))))
+
+        self.controller = TestsRunnerController()
+
+    def expand_tree(self):
+        """Manage Tree view"""
+        ...

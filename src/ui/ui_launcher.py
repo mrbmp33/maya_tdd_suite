@@ -1,10 +1,10 @@
 from qtpy import QtWidgets
-from maya_testing_ui import SettingsDialog
+from src.ui.maya_testing_ui import SettingsDialog, MayaTestRunnerDialog
 
 
 def launch_ui():
     app = QtWidgets.QApplication([])
-    widget = SettingsDialog()
+    widget = MayaTestRunnerDialog()
     widget.show()
     app.exec_()
 
