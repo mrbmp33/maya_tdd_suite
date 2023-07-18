@@ -39,23 +39,15 @@ def main():
         raise RuntimeError(f"Couldn't find a valid Maya executable with the given version: {parsed_args.maya}")
     
     # Create clean prefs and prepare sterile environ for testing
-    maya_app_dir = maya_locations.create_clean_maya_app_dir()
-    
-    os.environ['MAYA_APP_DIR'] = maya_app_dir
-    # Clear out any MAYA_SCRIPT_PATH value so that we know we're in a clean env.
-    os.environ['MAYA_SCRIPT_PATH'] = ''
-    
-    # Paths to inspect.
-    tests_dirs: list = _config['paths']['tests'] or [_config['default_tests']]
-    os.environ.setdefault('MAYA_MODULE_PATH', f"{os.pathsep}".join(tests_dirs))
-    
+    maya_locations.set_maya_env_variables()
+
     try:
         subprocess.check_call(cmd)
     except subprocess.CalledProcessError as pe:
         raise pe
     finally:
         # Clean up the tmp directory with vanilla prefs
-        shutil.rmtree(maya_app_dir)
+        shutil.rmtree(os.environ['MAYA_APP_DIR'])
 
 
 if __name__ == '__main__':

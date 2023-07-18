@@ -29,8 +29,7 @@ def load_config(config_file: str = None, resolve_vars=True) -> dict:
 
     with open(str(config_file), "r") as f:
         if resolve_vars:
-            yaml_data = yaml.load(f.read())
-            config_content = parsing_utils.resolve_env_variables_strings(yaml_data)
+            config_content = parsing_utils.resolve_env_variables_strings(f.read())
         else:
             config_content = f.read()
         config = yaml.safe_load(config_content)

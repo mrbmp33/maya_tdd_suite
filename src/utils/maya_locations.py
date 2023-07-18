@@ -80,5 +80,19 @@ def create_clean_maya_app_dir(directory: Optional[str] = None) -> str:
     return str(destination)
 
 
+def set_maya_env_variables():
+    """Sets the basic environment variables for Maya to function normally."""
+
+    # Create clean prefs and prepare sterile environ for testing
+    maya_app_dir = create_clean_maya_app_dir()
+
+    os.environ['MAYA_APP_DIR'] = maya_app_dir
+    # Clear out any MAYA_SCRIPT_PATH value so that we know we're in a clean env.
+    os.environ['MAYA_SCRIPT_PATH'] = ''
+
+    # Paths to inspect.
+    tests_dirs: list = _config['paths']['tests'] or [_config['default_tests']]
+    os.environ.setdefault('MAYA_MODULE_PATH', f"{os.pathsep}".join(tests_dirs))
+
 if __name__ == '__main__':
     print(create_clean_maya_app_dir())
