@@ -4,8 +4,7 @@ from pathlib import Path
 from qtpy import QtWidgets, QtGui, QtCore
 from qtpy.uic import loadUi
 
-from src.utils.config_loader import load_config, write_to_config
-from src.utils import rollback_importer
+from src.utils import reload_modules, config_loader, maya_locations
 from src import run_tests
 from . import model_structure
 
@@ -36,6 +35,7 @@ class TestsDirWidget(QtWidgets.QWidget):
             return
 
         # Fire file manager dialog
+        # noinspection PyArgumentList
         file_dialog = QtWidgets.QFileDialog()
         file_dialog.setDirectory(os.getenv('MAYA_TDD_ROOT_DIR', Path().cwd()))
         file_dialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
@@ -60,7 +60,7 @@ class TestsDirWidget(QtWidgets.QWidget):
 
         model.setStringList(list(set(current_items)))
 
-    # noinspection PyTypeChecker
+    # noinspection PyTypeChecker,PyUnresolvedReferences
     def _make_button_connections(self):
         self.add_path_btn: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'add_path_btn')
         self.remove_path_btn: QtWidgets.QPushButton = self.findChild(QtWidgets.QPushButton, 'remove_path_btn')
@@ -72,7 +72,7 @@ class TestsDirWidget(QtWidgets.QWidget):
 class SettingsDialog(QtWidgets.QDialog):
     """Dialog that displays the settings."""
 
-    def __init__(self, parent=None, model: Optional[QtCore.QAbstractListModel] = None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         self.tests_paths_wid: Optional[TestsDirWidget] = None
@@ -85,8 +85,9 @@ class SettingsDialog(QtWidgets.QDialog):
 
         # Initialize main layout and widget
         self.main_layout = QtWidgets.QVBoxLayout()
-        self.main_widget = QtWidgets.QWidget()
+        self.main_widget = QtWidgets.QWidget(self)
         self.main_layout.setContentsMargins(9, 4, 9, 9)
+        # noinspection PyArgumentList
         self.setMinimumSize(500, 300)
 
         self.setLayout(self.main_layout)
@@ -121,7 +122,7 @@ class SettingsDialog(QtWidgets.QDialog):
         from src.utils.parsing_utils import resolve_env_variables_strings
         import os
 
-        _config = load_config(resolve_vars=False)
+        _config = config_loader.load_config(resolve_vars=False)
         test_paths = set(_config['paths']['tests']) or [_config['default_tests']]
         resolved_tests_paths = [os.path.normpath(resolve_env_variables_strings(str(x))) for x in test_paths]
         resolved_tests_paths = sorted(list(filter(lambda x: os.path.exists(x), resolved_tests_paths)))
@@ -142,9 +143,9 @@ class SettingsDialog(QtWidgets.QDialog):
     def save_settings(self):
         """Saves the UI state to the settings file."""
 
-        _config = load_config(resolve_vars=False)
+        _config = config_loader.load_config(resolve_vars=False)
 
-        write_to_config(
+        config_loader.write_to_config(
             {
                 'params': {
                     'buffer_output': self.buffer_output_cb.isChecked(),
@@ -173,12 +174,21 @@ class TestsRunnerController:
 
     def __new__(cls, *args, **kwargs):
         """Singleton to ensure only one controller exists at a time."""
-        if not cls.instance():
-            cls.instance = TestsRunnerController()
+        if not isinstance(cls.instance, cls):
+            cls.instance = super().__new__(cls, *args, **kwargs)
         return cls.instance
 
     def __init__(self):
-        self.rollback_importer = rollback_importer.RollbackImporter()
+
+        self.model: Optional[QtCore.QAbstractItemModel] = None
+
+        # Take a snapshot of the currently-loaded modules to revert to this state after code execution
+        self.rollback_importer = reload_modules.RollbackImporter()
+
+        # Initialize the necessary environment variables
+        maya_locations.set_maya_env_variables()
+
+        # Populate model
         self.reload_model()
 
     def reload_model(self):
@@ -188,7 +198,7 @@ class TestsRunnerController:
 
         # Reset model population
         root_node = model_structure.BaseTreeNode()
-        self.model = QtCore.QAbstractItemModel()
+        self.model = model_structure.TestTreeModel(root_node)
 
     def run_all_tests(self):
         ...
@@ -207,7 +217,8 @@ class TestsRunnerController:
             self.rollback_importer.uninstall()
 
         # Create a new rollback importer to pick up any code updates
-        self.rollback_importer = rollback_importer.RollbackImporter()
+        self.rollback_importer = reload_modules.RollbackImporter()
+
 
 class MayaTestRunnerDialog(QtWidgets.QDialog):
     """Actual widget that will be implanted inside the base container for the UI.
@@ -219,9 +230,13 @@ class MayaTestRunnerDialog(QtWidgets.QDialog):
     def __init__(self, parent=None, *args, **kwargs):
         super(MayaTestRunnerDialog, self).__init__(parent=parent, *args, **kwargs)
 
+        self.controller: Optional[TestsRunnerController] = None
+
         self.run_all_btn: Optional[QtWidgets.QPushButton] = None
         self.run_selected_btn: Optional[QtWidgets.QPushButton] = None
         self.run_failed_btn: Optional[QtWidgets.QPushButton] = None
+
+        self.tests_tree_view: Optional[QtWidgets.QTreeView] = None
 
         loadUi(str(Path(__file__).parent / 'designer' / 'tests_runner_widget.ui'), self)
 
@@ -232,8 +247,6 @@ class MayaTestRunnerDialog(QtWidgets.QDialog):
             str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_selected_tests.png'))))
         self.run_failed_btn.setIcon(QtGui.QIcon(QtGui.QPixmap(
             str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_failed_tests.png'))))
-
-        self.controller = TestsRunnerController()
 
     def expand_tree(self):
         """Manage Tree view"""
