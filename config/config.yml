@@ -6,5 +6,6 @@ params:
   keep_tmp_files: true
 paths:
   tests:
+  - /home/bernat/Dades/Documents/01_personal_projects/FKSolver/release/fks/utils/unittest
   - /home/bernat/Dades/Documents/01_personal_projects/maya_tdd_suite/tests
   tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp
