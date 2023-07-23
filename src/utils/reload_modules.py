@@ -1,3 +1,4 @@
+import pathlib
 import sys
 
 
@@ -25,6 +26,17 @@ class RollbackImporter(object):
                 # Force reload when modname next imported
                 del (sys.modules[modname])
 
+
+def find_importable_root(path):
+    directory = pathlib.Path(path)
+    module = list(directory.glob("*.py"))[0]
+
+    for each in module.parents:
+        if '__init__.py' not in [x.name for x in each.iterdir() if x.is_file()]:
+            return str(each)
+
+
+# ==== LEGACY ? ========================================================================================================
 
 _rollback_importer = RollbackImporter()
 

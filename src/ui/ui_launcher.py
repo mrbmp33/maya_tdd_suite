@@ -30,6 +30,7 @@ def launch_ui():
     settings_action = QtGui.QAction('&Settings', main_dialog)
     # noinspection PyUnresolvedReferences
     settings_action.triggered.connect(settings_dialog.show)
+    # settings_action.triggered.connect()
     menu_bar.addAction(settings_action)
 
     # Add widgets to layout

@@ -111,7 +111,7 @@ class TreeNode(BaseTreeNode):
                 if isinstance(test_, unittest.TestCase) or test_.countTestCases():
                     self.add_child(TreeNode(test_, self))
 
-        if "ModuleImportFailure" == self.test_suite.__class__.__name__:
+        if self.test_suite.__class__.__name__ == "ModuleImportFailure":
             try:
                 getattr(self.test_suite, self.name())()
             except ImportError:

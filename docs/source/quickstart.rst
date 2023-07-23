@@ -44,3 +44,6 @@ If you are launching the tests from the terminal, call the "main.py" file under 
 located under the project's */tests* directory.
 
 ..todo: Should probably add the functionality to pass paths as an argument when launching tests from the cmd line.
+
+
+!! Tests must be importable from the paths provided in the configuration
