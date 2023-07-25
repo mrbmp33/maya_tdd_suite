@@ -1,42 +1,23 @@
-from qtpy import QtWidgets, QtGui
-from src.ui.maya_testing_ui import SettingsDialog, MayaTestRunnerWidget, TestsRunnerController
+from PySide6 import QtWidgets, QtGui
+from src.ui.maya_testing_ui import SettingsDialog, TestsRunnerWidget, MayaTddDialog
+from src.ui.controller import TestsRunnerController
 
 
 def launch_ui():
     app = QtWidgets.QApplication([])
 
-    main_dialog = QtWidgets.QDialog()
-    main_layout = QtWidgets.QVBoxLayout()
-    main_layout.setContentsMargins(6, 6, 6, 6)
-    main_dialog.setLayout(main_layout)
-    main_dialog.setFixedSize(650, 400)
-
-    # Add menu bar
-    menu_bar = QtWidgets.QMenuBar()
-    main_layout.setMenuBar(menu_bar)
-
-    # Initialize inner widgets
-    test_runner_widget = MayaTestRunnerWidget()
-    settings_dialog = SettingsDialog(test_runner_widget)
+    maya_tdd_dialog = MayaTddDialog()
 
     # Initialize controller default state
-    controller = TestsRunnerController(settings_dialog.get_current_paths())
+    controller = TestsRunnerController(
+        maya_tdd_dialog.settings_dialog.get_current_paths()
+    )
     controller.reload_model()
 
     # Change widget states
-    test_runner_widget.tests_tree_view.setModel(controller.model)
+    maya_tdd_dialog.test_runner_wid.tests_tree_view.setModel(controller.model)
 
-    # Populate menu
-    settings_action = QtGui.QAction('&Settings', main_dialog)
-    # noinspection PyUnresolvedReferences
-    settings_action.triggered.connect(settings_dialog.show)
-    # settings_action.triggered.connect()
-    menu_bar.addAction(settings_action)
-
-    # Add widgets to layout
-    main_layout.addWidget(test_runner_widget)
-
-    main_dialog.show()
+    maya_tdd_dialog.show()
     app.exec_()
 
 
