@@ -21,10 +21,10 @@ class RollbackImporter(object):
         self.previous_modules = set(sys.modules.keys())
 
     def uninstall(self):
-        for modname in sys.modules.keys():
+        for modname in sys.modules.copy().keys():
             if modname not in self.previous_modules:
                 # Force reload when modname next imported
-                del (sys.modules[modname])
+                del sys.modules[modname]
 
 
 def find_importable_root(path):

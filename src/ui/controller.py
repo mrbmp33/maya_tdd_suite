@@ -1,6 +1,8 @@
-from typing import Optional
+"""Module that contains the object that operates with the data inside the UI's model."""
 
-from PySide6 import QtCore
+from typing import Optional, Collection
+
+from qtpy import QtCore
 
 from src import run_tests
 from src.ui import model_structure
@@ -8,7 +10,7 @@ from src.utils import reload_modules, maya_locations
 
 
 class TestsRunnerController:
-    """In charge of manipulating the model."""
+    """In charge of manipulating the model from outside it."""
 
     instance = None
 
@@ -22,7 +24,7 @@ class TestsRunnerController:
     def __init__(self, test_directories: Optional[list] = None):
 
         self.model: Optional[QtCore.QAbstractItemModel] = None
-        self.test_directories = test_directories
+        self._test_directories = test_directories
 
         # Take a snapshot of the currently-loaded modules to revert to this state after code execution
         self.rollback_importer = reload_modules.RollbackImporter()
@@ -41,6 +43,18 @@ class TestsRunnerController:
         # Reset model population
         root_node = model_structure.TreeNode(test_suite)
         self.model = model_structure.TestTreeModel(root_node)
+
+    @property
+    def test_directories(self):
+        return self._test_directories
+
+    @test_directories.setter
+    def test_directories(self, new_dirs: Collection):
+        """Sets and triggers the model update."""
+        self._test_directories = new_dirs
+        self.reload_model()
+
+    # ==== RUNNING TESTS ===============================================================================================
 
     def run_all_tests(self):
         ...

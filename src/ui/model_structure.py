@@ -3,7 +3,7 @@ import unittest
 import pathlib
 import os
 import logging
-from PySide2 import QtCore, QtGui
+from qtpy import QtCore, QtGui
 from enum import auto, IntEnum
 
 ICON_DIR = pathlib.Path(os.environ["MAYA_TDD_ROOT_DIR"]) / "icons"
