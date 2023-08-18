@@ -35,10 +35,11 @@ class TestsRunnerController:
     def reload_model(self):
         """Re-inspects all the directories looking for new tests to run and reloads the latest version of the code."""
         self.reset_rollback_importer()
-        for path in self.test_directories:
-            run_tests.add_to_path(reload_modules.find_importable_root(path))
 
-        test_suite = run_tests.get_tests(self.test_directories or None)
+        for path in self.test_directories:
+            run_tests.add_to_path(path)
+
+        test_suite = run_tests.get_tests(self._test_directories or None)
 
         # Reset model population
         root_node = model_structure.TreeNode(test_suite)

@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 from typing import Optional
@@ -8,6 +9,8 @@ from qtpy.uic import loadUi
 from src.utils import config_loader
 from src.ui.controller import TestsRunnerController
 
+_logger = logging.getLogger(__name__)
+_logger.setLevel(logging.DEBUG)
 
 # ==== SETTINGS-RELATED UIS ============================================================================================
 
@@ -196,13 +199,13 @@ class SettingsDialog(QtWidgets.QDialog):
 # ==== UI DEFINITION ===================================================================================================
 
 
+# noinspection PyArgumentList
 class TestsRunnerWidget(QtWidgets.QWidget):
     """Actual widget that will be implanted inside the base container for the UI.
     
     Best to keep it decoupled from maya code that is not ready to be mocked.
     """
 
-    # noinspection PyArgumentList
     def __init__(self, parent=None, *args, **kwargs):
         super(TestsRunnerWidget, self).__init__(parent=parent, *args, **kwargs)
 
@@ -283,4 +286,6 @@ class MayaTddDialog(QtWidgets.QDialog):
 
     @QtCore.Slot(list)
     def _update_model(self, paths: list):
+        # _logger.debug('Updating model data.')
+        print('Updating model data.')
         self.controller.test_directories = paths

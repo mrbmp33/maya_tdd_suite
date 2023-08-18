@@ -81,7 +81,11 @@ def create_clean_maya_app_dir(directory: Optional[str] = None) -> str:
 
 
 def set_maya_env_variables():
-    """Sets the basic environment variables for Maya to function normally."""
+    """Sets the basic environment variables for Maya to function normally.
+
+    In the event tha this code is running detached from Maya, it will use the modules paths in the configuration file
+    as a place to look for modules.
+    """
 
     # Create clean prefs and prepare sterile environ for testing
     maya_app_dir = create_clean_maya_app_dir()

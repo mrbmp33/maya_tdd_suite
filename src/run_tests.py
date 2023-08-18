@@ -1,5 +1,7 @@
 import os
+import pathlib
 import sys
+import unittest
 from typing import Iterable, Optional
 from unittest import TextTestRunner, TestSuite, TestLoader, TestCase
 from maya_test_result import MayaTestResult
@@ -7,6 +9,7 @@ from maya_test_result import MayaTestResult
 from utils import config_loader
 
 _config = config_loader.load_config()
+_blacklist_dirs = _config['blacklist_dir_names']
 
 
 def add_to_path(path):
@@ -21,7 +24,40 @@ def add_to_path(path):
     return False
 
 
+def should_inspect_dir(directory: pathlib.Path) -> bool:
+    """Returns if the given Path is a potential tests directory"""
+
+    # Filter hidden directories
+    if any(part.startswith('.') for part in directory.parts):
+        return False
+    # Filter blacklisted paths
+    if not all(part not in _blacklist_dirs for part in directory.parts):
+        return False
+
+    return True
+
+
 # ==== TESTS COLLECTION ================================================================================================
+
+
+def find_tests_in(root_dir: str) -> unittest.TestSuite:
+    """Recursively traverses the directory tree looking for tests directories while ignoring potentially unwanted
+    directories.
+    """
+    root_path = pathlib.Path(root_dir)
+    test_dirs = []
+
+    # Apply primary filter to ignore potential venv or vcs items
+    for relevant_path in [x for x in root_path.iterdir() if x.is_dir() and should_inspect_dir(x)]:
+        dirs = [str(x) for x in relevant_path.rglob('*tests') if x.is_dir() and should_inspect_dir(x)]
+        # Apply the same filter but this time to the recursive glob pattern
+        for p in dirs:
+            test_dirs.append(p)
+
+    if test_dirs:
+        return TestLoader().discover(*test_dirs)
+    else:
+        return unittest.TestSuite()
 
 
 def maya_module_tests():
@@ -67,9 +103,11 @@ def get_tests(directories: Iterable[str] = None,
         # Find all tests to run
         directories_added_to_path = []
         for p in directories:
-            discovered_suite = TestLoader().discover(p)
-            if discovered_suite.countTestCases():
-                test_suite.addTests(discovered_suite)
+            # Should be a list of 1 path
+            found_tests = find_tests_in(p)
+
+            if found_tests.countTestCases():
+                test_suite.addTests(found_tests)
 
     # Remove the added paths.
     for path in directories_added_to_path:

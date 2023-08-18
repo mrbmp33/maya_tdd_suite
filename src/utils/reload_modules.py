@@ -1,6 +1,11 @@
+import logging
+import os
 import pathlib
 import sys
+import importlib
+from src import run_tests
 
+_logger = logging.getLogger(__name__)
 
 class RollbackImporter(object):
     """Used to remove imported modules from the module list.
@@ -25,15 +30,6 @@ class RollbackImporter(object):
             if modname not in self.previous_modules:
                 # Force reload when modname next imported
                 del sys.modules[modname]
-
-
-def find_importable_root(path):
-    directory = pathlib.Path(path)
-    module = list(directory.glob("*.py"))[0]
-
-    for each in module.parents:
-        if '__init__.py' not in [x.name for x in each.iterdir() if x.is_file()]:
-            return str(each)
 
 
 # ==== LEGACY ? ========================================================================================================
