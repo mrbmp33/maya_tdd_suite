@@ -1,13 +1,14 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 from qtpy import QtWidgets, QtGui, QtCore
 from qtpy.uic import loadUi
 
 from src.utils import config_loader
 from src.ui.controller import TestsRunnerController
+from src.ui.model_structure import TreeNode
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -234,9 +235,19 @@ class TestsRunnerWidget(QtWidgets.QWidget):
         self.run_failed_btn.setIcon(QtGui.QIcon(QtGui.QPixmap(
             str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_failed_tests.png'))))
 
-    def expand_tree(self):
-        """Manage Tree view"""
-        ...
+    def expand_tree(self, node: TreeNode):
+        """Expands all the collapsed elements in a tree starting at the root_node"""
+
+        parent = node.parent()
+        model: QtCore.QAbstractItemModel = self.tests_tree_view.model()
+
+        parent_idx = (model.createIndex(parent.row(), 0, parent) if parent else QtCore.QModelIndex())
+        index = model.index(node.row(), 0, parent_idx)
+
+        self.tests_tree_view.setExpanded(index, True)
+
+        for child in node.children:
+            self.expand_tree(child)
 
 
 class MayaTddDialog(QtWidgets.QDialog):
@@ -286,6 +297,9 @@ class MayaTddDialog(QtWidgets.QDialog):
 
     @QtCore.Slot(list)
     def _update_model(self, paths: list):
-        # _logger.debug('Updating model data.')
-        print('Updating model data.')
+        _logger.debug('Updating model data.')
         self.controller.test_directories = paths
+        self.test_runner_wid.tests_tree_view.setModel(self.controller.model)
+        self.test_runner_wid.expand_tree(self.controller.model.root_node)
+
+

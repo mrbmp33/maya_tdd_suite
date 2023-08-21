@@ -3,6 +3,8 @@ import unittest
 import pathlib
 import os
 import logging
+from typing import Collection, Tuple
+
 from qtpy import QtCore, QtGui
 from enum import auto, IntEnum
 
@@ -180,11 +182,11 @@ class TestTreeModel(QtCore.QAbstractItemModel):
     def __init__(self, root, parent=None):
         super().__init__(parent)
 
-        self._root_node = root
+        self.root_node = root
         self.node_lookup = {}
 
         # Create a lookup so that we can find the TestNode given a TestCase or TestSuite
-        self.create_node_lookup(self._root_node)
+        self.create_node_lookup(self.root_node)
 
     def create_node_lookup(self, node: TreeNode):
         """Create a lookup so that we can find the TestNode given a TestCase or TestSuite. The lookup will be used to
@@ -200,7 +202,7 @@ class TestTreeModel(QtCore.QAbstractItemModel):
     def rowCount(self, parent):
         """Return the number of rows with this parent."""
         if not parent.isValid():
-            parent_node = self._root_node
+            parent_node = self.root_node
         else:
             parent_node = parent.internalPointer()
         return parent_node.child_count()
@@ -227,7 +229,7 @@ class TestTreeModel(QtCore.QAbstractItemModel):
         if role == QtCore.Qt.DecorationRole:
             node.status = value
             self.dataChanged.emit(*data_changed_kwargs)
-            if node.parent() is not self._root_node:
+            if node.parent() is not self.root_node:
                 self.setData(self.parent(index), value, role)
         elif role == QtCore.Qt.ToolTipRole:
             node.tool_tip = value
@@ -242,13 +244,13 @@ class TestTreeModel(QtCore.QAbstractItemModel):
     def parent(self, index):
         node = index.internalPointer()
         parent_node = node.parent()
-        if parent_node == self._root_node:
+        if parent_node == self.root_node:
             return QtCore.QModelIndex()
         return self.createIndex(parent_node.row(), 0, parent_node)
 
     def index(self, row, column, parent):
         if not parent.isValid():
-            parent_node = self._root_node
+            parent_node = self.root_node
         else:
             parent_node = parent.internalPointer()
 
@@ -259,7 +261,7 @@ class TestTreeModel(QtCore.QAbstractItemModel):
             return QtCore.QModelIndex()
 
     def get_index_of_node(self, node):
-        if node is self._root_node:
+        if node is self.root_node:
             return QtCore.QModelIndex()
         return self.index(node.row(), 0, self.get_index_of_node(node.parent()))
 
@@ -285,14 +287,17 @@ class TestTreeModel(QtCore.QAbstractItemModel):
     #         index = self.get_index_of_node(node)
     #         self.setData(index, "Test Passed", QtCore.Qt.ToolTipRole)
     #         self.setData(index, TestStatus.success, QtCore.Qt.DecorationRole)
-    #
-    # def _set_test_result_data(self, test_list, status):
-    #     """Store the test result data in model.
-    # S
-    #     :param test_list: A list of tuples of test results.
-    #     :param status: A TestStatus value."""
-    #     for test, reason in test_list:
-    #         node = self.node_lookup[str(test)]
-    #         index = self.get_index_of_node(node)
-    #         self.setData(index, reason, QtCore.Qt.ToolTipRole)
-    #         self.setData(index, status, QtCore.Qt.DecorationRole)
+
+    def _set_test_result_data(self, test_list: Collection[Tuple], status: TestStatus):
+        """Store the test result data in model.
+
+        Args:
+            test_list: A list of tuples of test results.
+            status: A TestStatus value.
+
+        """
+        for test, reason in test_list:
+            node = self.node_lookup[str(test)]
+            index = self.get_index_of_node(node)
+            self.setData(index, reason, QtCore.Qt.ToolTipRole)
+            self.setData(index, status, QtCore.Qt.DecorationRole)

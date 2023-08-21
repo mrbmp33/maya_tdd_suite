@@ -23,7 +23,7 @@ class TestsRunnerController:
 
     def __init__(self, test_directories: Optional[list] = None):
 
-        self.model: Optional[QtCore.QAbstractItemModel] = None
+        self.model: Optional[model_structure.TestTreeModel] = None
         self._test_directories = test_directories
 
         # Take a snapshot of the currently-loaded modules to revert to this state after code execution
