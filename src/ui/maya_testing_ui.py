@@ -13,6 +13,7 @@ from src.ui.model_structure import TreeNode
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
 
+
 # ==== SETTINGS-RELATED UIS ============================================================================================
 
 class TestsDirWidget(QtWidgets.QWidget):
@@ -251,7 +252,6 @@ class TestsRunnerWidget(QtWidgets.QWidget):
 
 
 class MayaTddDialog(QtWidgets.QDialog):
-
     DEFAULT_SIZE = (650, 600)
 
     def __init__(self, controller: TestsRunnerController, parent=None):
@@ -301,5 +301,3 @@ class MayaTddDialog(QtWidgets.QDialog):
         self.controller.test_directories = paths
         self.test_runner_wid.tests_tree_view.setModel(self.controller.model)
         self.test_runner_wid.expand_tree(self.controller.model.root_node)
-
-

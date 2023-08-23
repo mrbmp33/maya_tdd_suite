@@ -15,6 +15,7 @@ def launch_ui():
 
     # Change widget states
     maya_tdd_dialog.test_runner_wid.tests_tree_view.setModel(controller.model)
+    maya_tdd_dialog.test_runner_wid.expand_tree(controller.model.root_node)
 
     maya_tdd_dialog.show()
     app.exec_()
