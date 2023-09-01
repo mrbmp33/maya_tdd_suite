@@ -1,7 +1,7 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING
+from typing import Optional
 
 from qtpy import QtWidgets, QtGui, QtCore
 from qtpy.uic import loadUi
@@ -9,6 +9,7 @@ from qtpy.uic import loadUi
 from src.utils import config_loader
 from src.ui.controller import TestsRunnerController
 from src.ui.model_structure import TreeNode
+from src.ui import output_console
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -213,11 +214,13 @@ class TestsRunnerWidget(QtWidgets.QWidget):
 
         self.controller: Optional[TestsRunnerController] = None
 
+        self.console_parent_wid: Optional[QtWidgets.QWidget] = None
         self.run_all_btn: Optional[QtWidgets.QPushButton] = None
         self.run_selected_btn: Optional[QtWidgets.QPushButton] = None
         self.run_failed_btn: Optional[QtWidgets.QPushButton] = None
 
         self.tests_tree_view: Optional[QtWidgets.QTreeView] = None
+        self.output_console = output_console.OutputConsole()
 
         # Initialize elements
         self.init_ui()
@@ -236,6 +239,9 @@ class TestsRunnerWidget(QtWidgets.QWidget):
         self.run_failed_btn.setIcon(QtGui.QIcon(QtGui.QPixmap(
             str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_failed_tests.png'))))
 
+        self.output_console.setParent(self.console_parent_wid)
+        self.console_parent_wid.layout().addWidget(self.output_console)
+
     def expand_tree(self, node: TreeNode):
         """Expands all the collapsed elements in a tree starting at the root_node"""
 
@@ -252,7 +258,7 @@ class TestsRunnerWidget(QtWidgets.QWidget):
 
 
 class MayaTddDialog(QtWidgets.QDialog):
-    DEFAULT_SIZE = (650, 600)
+    DEFAULT_SIZE = (1000, 900)
 
     def __init__(self, controller: TestsRunnerController, parent=None):
         super().__init__(parent)
