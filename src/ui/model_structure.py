@@ -8,8 +8,11 @@ from typing import Collection, Tuple
 from qtpy import QtCore, QtGui
 from enum import auto, IntEnum
 
-ICON_DIR = pathlib.Path(os.environ["MAYA_TDD_ROOT_DIR"]) / "icons"
+from src.utils import config_loader
+
+_config = config_loader.load_config()
 logger = logging.getLogger(__name__)
+ICON_DIR = pathlib.Path(_config['paths']['icons'])
 
 
 class TestStatus(IntEnum):
@@ -86,6 +89,7 @@ class TreeNode(BaseTreeNode):
     """A node representing a Test, TestCase, or TestSuite for display in a QTreeView. It can change its display based on
     the current state."""
 
+    found_icon = None
     success_icon = None
     fail_icon = None
     error_icon = None
@@ -94,6 +98,7 @@ class TreeNode(BaseTreeNode):
     @classmethod
     def set_states(cls):
         """This is to prevent a bug where QPixmap swallows errors."""
+        cls.found_icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_DIR / "tdd_test_found.svg")))
         cls.success_icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_DIR / "tdd_test_success.png")))
         cls.fail_icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_DIR / "tdd_test_fail.png")))
         cls.error_icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_DIR / "tdd_test_error.png")))
@@ -166,8 +171,10 @@ class TreeNode(BaseTreeNode):
     def get_icon(self):
         """Get the status icon to display with the Test."""
         status = self.get_status()
+        x = 1
         return [
             None,
+            TreeNode.found_icon,
             TreeNode.success_icon,
             TreeNode.fail_icon,
             TreeNode.error_icon,
@@ -213,7 +220,7 @@ class TestTreeModel(QtCore.QAbstractItemModel):
     def data(self, index, role):
         if not index.isValid():
             return None
-        node = index.internalPointer()
+        node: TreeNode = index.internalPointer()
         if role == QtCore.Qt.DisplayRole:
             return node.name()
         elif role == QtCore.Qt.DecorationRole:
@@ -265,30 +272,7 @@ class TestTreeModel(QtCore.QAbstractItemModel):
             return QtCore.QModelIndex()
         return self.index(node.row(), 0, self.get_index_of_node(node.parent()))
 
-    # def run_tests(self, stream, test_suite):
-    #     """Runs the given TestSuite.
-    #
-    #     :param stream: A stream object with write functionality to capture the test output.
-    #     :param test_suite: The TestSuite to run.
-    #     """
-    #     runner = unittest.TextTestRunner(
-    #         stream=stream, verbosity=2, resultclass=mayaunittest.TestResult
-    #     )
-    #     runner.failfast = False
-    #     runner.buffer = mayaunittest.Settings.buffer_output
-    #     result = runner.run(test_suite)
-    #
-    #     self._set_test_result_data(result.failures, TestStatus.fail)
-    #     self._set_test_result_data(result.errors, TestStatus.error)
-    #     self._set_test_result_data(result.skipped, TestStatus.skipped)
-    #
-    #     for test in result.successes:
-    #         node = self.node_lookup[str(test)]
-    #         index = self.get_index_of_node(node)
-    #         self.setData(index, "Test Passed", QtCore.Qt.ToolTipRole)
-    #         self.setData(index, TestStatus.success, QtCore.Qt.DecorationRole)
-
-    def _set_test_result_data(self, test_list: Collection[Tuple], status: TestStatus):
+    def set_test_result_data(self, test_list: Collection[Tuple], status: TestStatus):
         """Store the test result data in model.
 
         Args:

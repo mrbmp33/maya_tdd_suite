@@ -55,7 +55,14 @@ class MayaTestResult(unittest.TextTestResult):
     """Customize the test result, so we can do things like do a file new between each test and suppress script
     editor output.
     """
-    
+
+    successes = []
+
+    def addSuccess(self, test: unittest.case.TestCase) -> None:
+        """Manually keep track of successes."""
+        super(MayaTestResult, self).addSuccess(test)
+        self.successes.append((test, "Success"))
+
     def startTestRun(self):
         """Called before any tests are run."""
         super(MayaTestResult, self).startTestRun()

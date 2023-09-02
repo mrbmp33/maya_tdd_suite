@@ -2,3 +2,4 @@
 /venv/*
 .env
 sandbox*
+/material_icons/

@@ -209,11 +209,12 @@ class TestsRunnerWidget(QtWidgets.QWidget):
     Best to keep it decoupled from maya code that is not ready to be mocked.
     """
 
-    def __init__(self, parent=None, *args, **kwargs):
+    def __init__(self, parent=None, controller=None, *args, **kwargs):
         super(TestsRunnerWidget, self).__init__(parent=parent, *args, **kwargs)
 
-        self.controller: Optional[TestsRunnerController] = None
+        self.controller: Optional[TestsRunnerController] = controller
 
+        self.splitter = None
         self.console_parent_wid: Optional[QtWidgets.QWidget] = None
         self.run_all_btn: Optional[QtWidgets.QPushButton] = None
         self.run_selected_btn: Optional[QtWidgets.QPushButton] = None
@@ -223,27 +224,71 @@ class TestsRunnerWidget(QtWidgets.QWidget):
         self.output_console = output_console.OutputConsole()
 
         # Initialize elements
-        self.init_ui()
+        self.__init_ui()
 
-    def init_ui(self):
-        self.main_layout = QtWidgets.QVBoxLayout()
+    def __init_ui(self):
+        """Loads the UI components."""
+
+        # Main layout
+        main_layout = QtWidgets.QVBoxLayout()
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        self.setLayout(main_layout)
+
+        # Actions bar
+        self.buttons_bar = QtWidgets.QMenuBar()
+        main_layout.addWidget(self.buttons_bar)
+        self.__actions_setup()
 
         # Load from file
         loadUi(str(Path(__file__).parent / 'designer' / 'tests_runner_widget.ui'), self)
 
-        # Add icons to buttons
-        self.run_all_btn.setIcon(QtGui.QIcon(QtGui.QPixmap(
-            str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_all_tests.png'))))
-        self.run_selected_btn.setIcon(QtGui.QIcon(QtGui.QPixmap(
-            str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_selected_tests.png'))))
-        self.run_failed_btn.setIcon(QtGui.QIcon(QtGui.QPixmap(
-            str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_failed_tests.png'))))
+        self.splitter.setStretchFactor(1, 4)
 
+        # Insert the output console inside the loaded UI
         self.output_console.setParent(self.console_parent_wid)
         self.console_parent_wid.layout().addWidget(self.output_console)
+        self.output_console.add_color("^ok", 92, 184, 92)
+        self.output_console.add_color("^FAIL", 240, 173, 78)
+        self.output_console.add_color("^ERROR", 217, 83, 79)
+        self.output_console.add_color("^skipped", 88, 165, 204)
+
+        # Set the tree view selection mode
+        self.tests_tree_view.setSelectionMode(QtWidgets.QAbstractItemView.ExtendedSelection)
+
+    def __actions_setup(self):
+        """Defines and initializes the actions used to run tests."""
+
+        # Run all tests
+        run_all = self.buttons_bar.addAction("Run All Tests")
+        run_all.setIcon(QtGui.QIcon(QtGui.QPixmap(
+            str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_all_tests.png')))
+        )
+        run_all.setToolTip("Run all tests.")
+
+        # Run selected tests only
+        run_selected = self.buttons_bar.addAction("Run Selected Tests")
+        run_selected.setIcon(QtGui.QIcon(QtGui.QPixmap(
+            str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_selected_tests.png')))
+        )
+        run_selected.setToolTip("Run all selected tests.")
+
+        # Run failed tests
+        run_failed = self.buttons_bar.addAction("Run Failed Tests")
+        run_failed.setIcon(QtGui.QIcon(QtGui.QPixmap(
+            str(Path(os.environ['MAYA_TDD_ROOT_DIR']) / 'icons' / 'tdd_run_failed_tests.png')))
+        )
+        run_failed.setToolTip("Run all failed tests.")
+
+        # If the widget has a controller attached, connect the actions to it
+        if self.controller:
+            run_all.triggered.connect(self.__run_all_tests_cb)
+            run_selected.triggered.connect(self.__run_selected_tests_cb)
+            run_failed.triggered.connect(self.__run_failed_tests_cb)
+
+    # ==== VISUALIZATION ===============================================================================================
 
     def expand_tree(self, node: TreeNode):
-        """Expands all the collapsed elements in a tree starting at the root_node"""
+        """Expands all the collapsed elements in a tree starting at the root_node."""
 
         parent = node.parent()
         model: QtCore.QAbstractItemModel = self.tests_tree_view.model()
@@ -256,6 +301,23 @@ class TestsRunnerWidget(QtWidgets.QWidget):
         for child in node.children:
             self.expand_tree(child)
 
+    # ==== CLEANUP CALLBACKS ===========================================================================================
+
+    def __run_all_tests_cb(self):
+        """Cleans the console and runs all tests."""
+        self.output_console.clear()
+        self.controller.run_all_tests(self.output_console)
+
+    def __run_selected_tests_cb(self):
+        """Cleans the console and runs selected tests."""
+        self.output_console.clear()
+        self.controller.run_selected_tests(self.output_console)
+
+    def __run_failed_tests_cb(self):
+        """Cleans the console and runs only the failed tests."""
+        self.output_console.clear()
+        self.controller.run_failed_tests(self.output_console)
+
 
 class MayaTddDialog(QtWidgets.QDialog):
     DEFAULT_SIZE = (1000, 900)
@@ -266,13 +328,12 @@ class MayaTddDialog(QtWidgets.QDialog):
         # Window must have some controller
         self.controller = controller
 
-        # Controller
         self.setBaseSize(*self.__class__.DEFAULT_SIZE)
         main_layout = QtWidgets.QVBoxLayout()
         main_layout.setContentsMargins(6, 6, 6, 6)
 
         # Initialize inner widgets
-        self.test_runner_wid = TestsRunnerWidget(self)
+        self.test_runner_wid = TestsRunnerWidget(parent=self, controller=controller)
         self.settings_dialog = SettingsDialog(self)
 
         # Add menu bar
@@ -280,9 +341,6 @@ class MayaTddDialog(QtWidgets.QDialog):
         main_layout.setMenuBar(self.menu_bar)
 
         main_layout.addWidget(self.test_runner_wid)
-
-        # NEED TO INITIALIZE HERE THE TEST OUTPUT CONSOLE
-
         self.setLayout(main_layout)
 
         self._setup_actions()
