@@ -7,14 +7,16 @@ blacklist_dir_names:
 - .vscode
 - .history
 - .idea
-default_tests: $ENV{MAYA_TDD_ROOT_DIR}
+default_tests: $ENV{MAYA_TDD_ROOT_DIR}/tests
 default_tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp
 params:
   buffer_output: true
   file_new: true
   keep_tmp_files: true
 paths:
+  icons: $ENV{MAYA_TDD_ROOT_DIR}/material_icons
+  import_paths:
+  - $ENV{MAYA_TDD_ROOT_DIR}
   tests:
-  - $ENV{MAYA_TDD_ROOT_DIR}/tests
+  - $ENV{MAYA_TDD_ROOT_DIR}/src/tests/test_dummy.py
   tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp
-  icons: $ENV{MAYA_TDD_ROOT_DIR}/icons

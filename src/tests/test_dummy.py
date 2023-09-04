@@ -1,10 +1,9 @@
 import logging
 import unittest
 import pathlib
-import os
 
 import src.maya_test_case as maya_test
-from utils import config_loader
+from src.utils import config_loader
 
 _config = config_loader.load_config()
 _logger = logging.getLogger("maya_tdd")

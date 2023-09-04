@@ -143,20 +143,22 @@ class SettingsDialog(QtWidgets.QDialog):
 
         _config = config_loader.load_config(resolve_vars=False)
 
-        config_loader.write_to_config(
-            {
-                'params': {
-                    'buffer_output': self.buffer_output_cb.isChecked(),
-                    'keep_tmp_files': self.keep_tmp_files_cb.isChecked(),
-                    'file_new': self.new_file_cb.isChecked(),
-                },
-                'paths': {
-                    'tests': self.tests_paths_view.model().stringList(),
-                    'tmp': self.tmp_files_dir_le.text() or _config['default_tmp'],
-                }
+        new_paths = {
+            'tests': self.tests_paths_view.model().stringList(),
+            'tmp': self.tmp_files_dir_le.text() or _config['default_tmp'],
+        }
+        new_paths.update(_config['paths'])
 
-            }
-        )
+        out_dict = {
+            'params': {
+                'buffer_output': self.buffer_output_cb.isChecked(),
+                'keep_tmp_files': self.keep_tmp_files_cb.isChecked(),
+                'file_new': self.new_file_cb.isChecked(),
+            },
+            'paths': new_paths,
+        }
+
+        config_loader.write_to_config(out_dict)
 
     def closeEvent(self, event: QtGui.QCloseEvent):
         self.save_settings()

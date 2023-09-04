@@ -24,26 +24,26 @@ def add_to_path(path):
     return False
 
 
-def should_inspect_dir(directory: pathlib.Path) -> bool:
-    """Returns if the given Path is a potential tests directory"""
-
-    # Filter hidden directories
-    if any(part.startswith('.') for part in directory.parts):
-        return False
-    # Filter blacklisted paths
-    if not all(part not in _blacklist_dirs for part in directory.parts):
-        return False
-
-    return True
-
-
 # ==== TESTS COLLECTION ================================================================================================
 
 
-def find_tests_in(root_dir: str) -> unittest.TestSuite:
+def find_tests_recursively(root_dir: str) -> unittest.TestSuite:
     """Recursively traverses the directory tree looking for tests directories while ignoring potentially unwanted
     directories.
     """
+
+    def should_inspect_dir(directory: pathlib.Path) -> bool:
+        """Returns if the given Path is a potential tests directory"""
+
+        # Filter hidden directories
+        if any(part.startswith('.') for part in directory.parts):
+            return False
+        # Filter blacklisted paths
+        if not all(part not in _blacklist_dirs for part in directory.parts):
+            return False
+
+        return True
+
     root_path = pathlib.Path(root_dir)
     test_dirs = []
 
@@ -68,46 +68,52 @@ def maya_module_tests():
             yield p
 
 
-def get_tests(directories: Iterable[str] = None,
+def get_tests(paths: Iterable[str] = None,
               specific_test: Optional[str] = None,
               test_suite: Optional[TestSuite] = None) -> TestSuite:
     """Get a *unittest.TestSuite* containing all the desired tests.
 
     Args:
-        directories (Iterable[str]): Optional list of directories with which to search for tests. If omitted, use all
+        paths (Iterable[str]): Optional list of directories and/or modules to search for tests. If omitted, use all
             "tests" directories of the packages found in the MAYA_MODULE_PATH.
 
-        specific_test (Optional[str]): Optional test path to find a specific test such as
-            'test_mytest.SomeTestCase.test_function'.
+        specific_test (Optional[str]): Optional test path to find a specific test such as 'test_mytest.py'.
 
-        test_suite (Optional[TestSuite]): Optional unittest.TestSuite to add the discovered tests to.  If omitted a new
+        test_suite (Optional[TestSuite]): Optional unittest.TestSuite to add the discovered tests to. If omitted a new
             TestSuite will be created.
     Returns:
          TestSuite: The populated TestSuite.
     """
-    if not directories:
-        directories = maya_module_tests()
 
-    # Populate a TestSuite with all the tests
+    # Create an empty suite and populate it with all the found tests
     if not test_suite:
         test_suite = TestSuite()
 
+    # Treat modules and directories independently
+    modules = [mod for mod in paths if os.path.isfile(mod)]
+    directories = [directory for directory in paths if os.path.isdir(directory)]
+
+    # Fallback to using default maya directories if none is provided
+    if not directories and not paths:
+        directories = maya_module_tests()
+
+    # Looking for tests
     if specific_test:
-        # Find the specified test to run
         directories_added_to_path = [p for p in directories if add_to_path(p)]
         discovered_suite = TestLoader().loadTestsFromName(specific_test)
-
         if discovered_suite.countTestCases():
             test_suite.addTests(discovered_suite)
     else:
-        # Find all tests to run
-        directories_added_to_path = []
-        for p in directories:
-            # Should be a list of 1 path
-            found_tests = find_tests_in(p)
-
-            if found_tests.countTestCases():
+        if directories:
+            for each in directories:
+                found_tests = find_tests_recursively(each)
+                if found_tests.countTestCases():
+                    test_suite.addTests(found_tests)
+        if modules:
+            found_tests = unittest.defaultTestLoader.loadTestsFromNames(modules)
+            if found_tests:
                 test_suite.addTests(found_tests)
+        directories_added_to_path = []
 
     # Remove the added paths.
     for path in directories_added_to_path:

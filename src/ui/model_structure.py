@@ -98,11 +98,26 @@ class TreeNode(BaseTreeNode):
     @classmethod
     def set_states(cls):
         """This is to prevent a bug where QPixmap swallows errors."""
-        cls.found_icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_DIR / "tdd_test_found.svg")))
-        cls.success_icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_DIR / "tdd_test_success.png")))
-        cls.fail_icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_DIR / "tdd_test_fail.png")))
-        cls.error_icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_DIR / "tdd_test_error.png")))
-        cls.skip_icon = QtGui.QIcon(QtGui.QPixmap(str(ICON_DIR / "tdd_test_skip.png")))
+
+        # Hard-coded file names
+        match_files_map = {
+            'tdd_test_found': None,
+            'tdd_test_success': None,
+            'tdd_test_fail': None,
+            'tdd_test_error': None,
+            'tdd_test_skip': None,
+        }
+
+        icons_contents = ICON_DIR.iterdir()
+        for f in icons_contents:
+            if f.stem in match_files_map:
+                match_files_map[f.stem] = str(f)
+
+        cls.found_icon = QtGui.QIcon(QtGui.QPixmap(match_files_map['tdd_test_found']))
+        cls.success_icon = QtGui.QIcon(QtGui.QPixmap(match_files_map['tdd_test_success']))
+        cls.fail_icon = QtGui.QIcon(QtGui.QPixmap(match_files_map['tdd_test_fail']))
+        cls.error_icon = QtGui.QIcon(QtGui.QPixmap(match_files_map['tdd_test_error']))
+        cls.skip_icon = QtGui.QIcon(QtGui.QPixmap(match_files_map['tdd_test_skip']))
 
     def __init__(self, test, parent=None):
         super(TreeNode, self).__init__(parent)

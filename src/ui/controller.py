@@ -26,6 +26,11 @@ class TestsRunnerController:
         self.model: Optional[model_structure.TestTreeModel] = None
         self._test_directories = test_directories
 
+        # import_paths: list = _config['paths'].get('import_paths')
+        #
+        # if import_paths:
+        #     map(run_tests.add_to_path, import_paths)
+
         # Take a snapshot of the currently-loaded modules to revert to this state after code execution
         self.rollback_importer = reload_modules.RollbackImporter()
 
