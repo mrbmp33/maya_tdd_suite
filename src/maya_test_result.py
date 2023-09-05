@@ -56,7 +56,10 @@ class MayaTestResult(unittest.TextTestResult):
     editor output.
     """
 
-    successes = []
+    def __init__(self, *args, **kwargs):
+        super(MayaTestResult, self).__init__(*args, **kwargs)
+
+        self.successes = []
 
     def addSuccess(self, test: unittest.case.TestCase) -> None:
         """Manually keep track of successes."""

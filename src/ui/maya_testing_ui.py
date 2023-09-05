@@ -144,11 +144,11 @@ class SettingsDialog(QtWidgets.QDialog):
 
         _config = config_loader.load_config(resolve_vars=False)
 
-        new_paths = {
+        new_paths: dict = _config['paths']
+        new_paths.update({
             'tests': self.tests_paths_view.model().stringList(),
             'tmp': self.tmp_files_dir_le.text() or _config['default_tmp'],
-        }
-        new_paths.update(_config['paths'])
+        })
 
         out_dict = {
             'params': {
