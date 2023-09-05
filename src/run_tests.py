@@ -2,6 +2,7 @@ import importlib
 import os
 import pathlib
 import sys
+import typing
 import unittest
 from typing import Iterable, Optional
 from unittest import TextTestRunner, TestSuite, TestLoader, TestCase
@@ -80,38 +81,44 @@ def get_tests(paths: Iterable[str] = None,
     if not test_suite:
         test_suite = TestSuite()
 
-    # Treat modules and directories independently
-    modules = [mod for mod in paths if os.path.isfile(mod)]
-    directories = [directory for directory in paths if os.path.isdir(directory)]
-
-    # Fallback to using default maya directories if none is provided
-    if not directories and not paths:
-        directories = maya_module_tests()
-
-    # Looking for tests
+    # For individual tests first
     if specific_test:
-        directories_added_to_path = [p for p in directories if add_to_path(p)]
+        directories_added_to_path = [p for p in paths if add_to_path(p)]
         discovered_suite = TestLoader().loadTestsFromName(specific_test)
+
         if discovered_suite.countTestCases():
             test_suite.addTests(discovered_suite)
-    else:
-        if directories:
-            for each in directories:
-                found_tests = unittest.defaultTestLoader.discover(each, pattern="*.py")
-                if found_tests.countTestCases():
-                    test_suite.addTests(found_tests)
-        if modules:
-            for mod in modules:
-                found_tests = unittest.defaultTestLoader.loadTestsFromModule(
-                    _module_obj_from_path(mod)
-                )
-                if found_tests:
-                    test_suite.addTests(found_tests)
-        directories_added_to_path = []
 
-    # Remove the added paths.
-    for path in directories_added_to_path:
-        sys.path.remove(path)
+        # Remove the added paths.
+        for path in directories_added_to_path:
+            sys.path.remove(path)
+
+        return test_suite
+
+    # For finding tests depending on file or directory
+    modules, directories = (), ()
+
+    # Treat modules and directories independently
+    if paths and isinstance(paths, typing.Collection):
+        modules = [mod for mod in paths if os.path.isfile(mod)]
+        directories = [directory for directory in paths if os.path.isdir(directory)]
+
+    # Fallback to using default maya directories if none is provided
+    if not any((directories, paths)):
+        directories = maya_module_tests()
+
+    if directories:
+        for each in directories:
+            found_tests = unittest.defaultTestLoader.discover(each, pattern="*.py")
+            if found_tests.countTestCases():
+                test_suite.addTests(found_tests)
+    if modules:
+        for mod in modules:
+            found_tests = unittest.defaultTestLoader.loadTestsFromModule(
+                _module_obj_from_path(mod)
+            )
+            if found_tests:
+                test_suite.addTests(found_tests)
 
     return test_suite
 

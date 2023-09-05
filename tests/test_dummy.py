@@ -50,18 +50,5 @@ class DummyTestCase(maya_test.MayaTestCase):
         self.assertTrue(True)
 
 
-class OtherTestCase(maya_test.MayaTestCase):
-
-    def test_passing(self):
-        self.assertEqual(1, 1)
-
-    @unittest.expectedFailure
-    def test_failure(self):
-        self.assertEqual(0, 1)
-
-    def test_unexpected_failure(self):
-        self.assertEqual(0, 1)
-
-
 if __name__ == '__main__':
     unittest.main()

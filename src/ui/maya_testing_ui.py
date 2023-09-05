@@ -41,7 +41,8 @@ class TestsDirWidget(QtWidgets.QWidget):
         # noinspection PyArgumentList
         file_dialog = QtWidgets.QFileDialog()
         file_dialog.setDirectory(os.getenv('MAYA_TDD_ROOT_DIR', Path().cwd()))
-        file_dialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
+        file_dialog.setReadOnly(True)
+        file_dialog.setNameFilter("Python Files (*.py);;All Files (*)")
 
         model = self.paths_view.model()
         current_items = model.stringList()
@@ -360,6 +361,11 @@ class MayaTddDialog(QtWidgets.QDialog):
     def _make_connections(self):
         """Links the controller and the settings dialog."""
         self.settings_dialog.updated_settings_signal.connect(self._update_model)
+        self.settings_dialog.updated_settings_signal.connect(self._reset_output)
+
+    @QtCore.Slot(list)
+    def _reset_output(self):
+        self.test_runner_wid.output_console.clear()
 
     @QtCore.Slot(list)
     def _update_model(self, paths: list):

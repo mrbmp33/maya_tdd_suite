@@ -18,5 +18,5 @@ paths:
   import_paths:
   - $ENV{MAYA_TDD_ROOT_DIR}
   tests:
-  - $ENV{MAYA_TDD_ROOT_DIR}/src/tests/test_dummy.py
+  - $ENV{MAYA_TDD_ROOT_DIR}/tests/test_dummy.py
   tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp
