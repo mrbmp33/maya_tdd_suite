@@ -1,3 +1,4 @@
+import importlib
 import os
 import pathlib
 import sys
@@ -24,40 +25,30 @@ def add_to_path(path):
     return False
 
 
+def _module_obj_from_path(file_path: str):
+    """Returns a module object from a file path that corresponds to a python module."""
+
+    file_path = pathlib.Path(file_path)
+    paths = list(file_path.parents)
+    paths.insert(0, file_path)
+
+    # Build the name of the module and try importing it
+    for index, path in enumerate(paths):
+        if index > 0:
+            module_name = ".".join(
+                [str(x.stem) for x in paths[0:index+1]].__reversed__()
+            )
+        else:
+            module_name = path.stem
+        try:
+            return importlib.import_module(module_name, file_path)
+        except ModuleNotFoundError:
+            continue
+
+    raise ModuleNotFoundError(f"Could not find an importable module for given file: {file_path}")
+
+
 # ==== TESTS COLLECTION ================================================================================================
-
-
-def find_tests_recursively(root_dir: str) -> unittest.TestSuite:
-    """Recursively traverses the directory tree looking for tests directories while ignoring potentially unwanted
-    directories.
-    """
-
-    def should_inspect_dir(directory: pathlib.Path) -> bool:
-        """Returns if the given Path is a potential tests directory"""
-
-        # Filter hidden directories
-        if any(part.startswith('.') for part in directory.parts):
-            return False
-        # Filter blacklisted paths
-        if not all(part not in _blacklist_dirs for part in directory.parts):
-            return False
-
-        return True
-
-    root_path = pathlib.Path(root_dir)
-    test_dirs = []
-
-    # Apply primary filter to ignore potential venv or vcs items
-    for relevant_path in [x for x in root_path.iterdir() if x.is_dir() and should_inspect_dir(x)]:
-        dirs = [str(x) for x in relevant_path.rglob('*tests') if x.is_dir() and should_inspect_dir(x)]
-        # Apply the same filter but this time to the recursive glob pattern
-        for p in dirs:
-            test_dirs.append(p)
-
-    if test_dirs:
-        return TestLoader().discover(*test_dirs)
-    else:
-        return unittest.TestSuite()
 
 
 def maya_module_tests():
@@ -106,13 +97,16 @@ def get_tests(paths: Iterable[str] = None,
     else:
         if directories:
             for each in directories:
-                found_tests = find_tests_recursively(each)
+                found_tests = unittest.defaultTestLoader.discover(each, pattern="*.py")
                 if found_tests.countTestCases():
                     test_suite.addTests(found_tests)
         if modules:
-            found_tests = unittest.defaultTestLoader.loadTestsFromNames(modules)
-            if found_tests:
-                test_suite.addTests(found_tests)
+            for mod in modules:
+                found_tests = unittest.defaultTestLoader.loadTestsFromModule(
+                    _module_obj_from_path(mod)
+                )
+                if found_tests:
+                    test_suite.addTests(found_tests)
         directories_added_to_path = []
 
     # Remove the added paths.
