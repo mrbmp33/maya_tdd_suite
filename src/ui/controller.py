@@ -1,6 +1,7 @@
 """Module that contains the object that operates with the data inside the UI's model."""
 import unittest
 from typing import Optional, Collection, Union
+from qtpy import QtCore
 
 from src import run_tests, maya_test_result
 from src.ui import model_structure
@@ -25,11 +26,6 @@ class TestsRunnerController:
 
         self.model: Optional[model_structure.TestTreeModel] = None
         self._test_directories = test_directories
-
-        # import_paths: list = _config['paths'].get('import_paths')
-        #
-        # if import_paths:
-        #     map(run_tests.add_to_path, import_paths)
 
         # Take a snapshot of the currently-loaded modules to revert to this state after code execution
         self.rollback_importer = reload_modules.RollbackImporter()
@@ -73,16 +69,22 @@ class TestsRunnerController:
         self._test_directories = new_dirs
         self.reload_model()
 
-    def run_all_tests(self, stream, test_suite: Optional[unittest.TestSuite] = None):
-        """Runs the given TestSuite.
+    def run_tests(self, stream, test_suite: unittest.TestSuite = None):
+        """Runs a given test suite and channels the output to a given stream option.
 
         Args:
             stream: A stream object with write functionality to capture the test output.
             test_suite (TestSuite): The TestSuite to run.
         """
 
+        self.reset_rollback_importer()
+
         if not test_suite:
-            test_suite = run_tests.get_tests(self._test_directories or None)
+            test_suite = run_tests.get_tests(paths=self._test_directories or None)
+
+        # Reset model population
+        # root_node = model_structure.TreeNode(test_suite)
+        # self.model = model_structure.TestTreeModel(root_node)
 
         runner = unittest.TextTestRunner(
             stream=stream, verbosity=2, resultclass=maya_test_result.MayaTestResult
@@ -96,8 +98,21 @@ class TestsRunnerController:
         self.model.set_test_result_data(result.errors, model_structure.TestStatus.ERROR)
         self.model.set_test_result_data(result.skipped, model_structure.TestStatus.SKIPPED)
 
-    def run_selected_tests(self, indices):
-        ...
+    def run_all_tests(self, stream):
+        """Runs all tests that can be found inside the paths and channels result into output stream."""
+
+        self.run_tests(stream, test_suite=run_tests.get_tests(self._test_directories))
+
+    def run_selected_tests(self, stream, test_indices: list[QtCore.QModelIndex]):
+        """Creates a suite out of all selected tests."""
+
+        suite = unittest.TestSuite()
+        test_modules_strings = model_structure.indices_to_tests(test_indices)
+
+        for test in test_modules_strings:
+            run_tests.get_tests(paths=self._test_directories, specific_test=test, test_suite=suite)
+
+        self.run_tests(stream, test_suite=suite)
 
     def run_failed_tests(self):
         ...

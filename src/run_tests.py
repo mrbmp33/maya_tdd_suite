@@ -37,12 +37,12 @@ def _module_obj_from_path(file_path: str):
     for index, path in enumerate(paths):
         if index > 0:
             module_name = ".".join(
-                [str(x.stem) for x in paths[0:index+1]].__reversed__()
+                [str(x.stem) for x in paths[0:index + 1]].__reversed__()
             )
         else:
             module_name = path.stem
         try:
-            return importlib.import_module(module_name, file_path)
+            return importlib.import_module(module_name, str(file_path))
         except ModuleNotFoundError:
             continue
 
@@ -81,20 +81,6 @@ def get_tests(paths: Iterable[str] = None,
     if not test_suite:
         test_suite = TestSuite()
 
-    # For individual tests first
-    if specific_test:
-        directories_added_to_path = [p for p in paths if add_to_path(p)]
-        discovered_suite = TestLoader().loadTestsFromName(specific_test)
-
-        if discovered_suite.countTestCases():
-            test_suite.addTests(discovered_suite)
-
-        # Remove the added paths.
-        for path in directories_added_to_path:
-            sys.path.remove(path)
-
-        return test_suite
-
     # For finding tests depending on file or directory
     modules, directories = (), ()
 
@@ -107,11 +93,26 @@ def get_tests(paths: Iterable[str] = None,
     if not any((directories, paths)):
         directories = maya_module_tests()
 
+    # For individual tests first
+    if specific_test:
+        directories_added_to_path = [p for p in directories if add_to_path(p)]
+        discovered_suite = unittest.defaultTestLoader.loadTestsFromName(specific_test)
+
+        if discovered_suite.countTestCases():
+            test_suite.addTests(discovered_suite)
+
+        # Remove the added paths.
+        for path in directories_added_to_path:
+            sys.path.remove(path)
+
+        return test_suite
+
     if directories:
         for each in directories:
             found_tests = unittest.defaultTestLoader.discover(each, pattern="*.py")
             if found_tests.countTestCases():
                 test_suite.addTests(found_tests)
+
     if modules:
         for mod in modules:
             found_tests = unittest.defaultTestLoader.loadTestsFromModule(

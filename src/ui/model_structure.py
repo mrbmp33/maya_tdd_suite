@@ -1,14 +1,15 @@
+import inspect
 import traceback
 import unittest
 import pathlib
-import os
 import logging
-from typing import Collection, Tuple
+from typing import Collection, Tuple, List, Union
 
 from qtpy import QtCore, QtGui
 from enum import auto, IntEnum
 
-from src.utils import config_loader
+from src.utils import config_loader, module_finder
+from src import maya_test_case
 
 _config = config_loader.load_config()
 logger = logging.getLogger(__name__)
@@ -69,7 +70,7 @@ class BaseTreeNode:
         """Get the number of children in the node"""
         return len(self.children)
 
-    def parent(self):
+    def parent(self) -> "BaseTreeNode":
         """Get the parent of node"""
         return self._parent
 
@@ -124,7 +125,7 @@ class TreeNode(BaseTreeNode):
 
         self.set_states()
 
-        self.test_suite = test
+        self.test_suite: Union[unittest.TestSuite, maya_test_case.MayaTestCase] = test
         self.tool_tip = str(test)
         self.status = TestStatus.NOT_RUN
 
@@ -143,6 +144,7 @@ class TreeNode(BaseTreeNode):
     def name(self):
         """Get the name to print in the view."""
         if isinstance(self.test_suite, unittest.TestCase):
+            # noinspection PyProtectedMember
             return self.test_suite._testMethodName
         elif isinstance(self.child(0).test_suite, unittest.TestCase):
             return self.child(0).test_suite.__class__.__name__
@@ -151,10 +153,14 @@ class TreeNode(BaseTreeNode):
 
     def path(self):
         """Gets the import path of the test.  Used for finding the test by name."""
-        if self.parent() and self.parent().parent():
-            return "{0}.{1}".format(self.parent().path(), self.name())
+
+        if isinstance(self.test_suite, unittest.TestSuite):
+            for test in self.test_suite._tests:
+                module_name = test.__class__.__module__
+                yield "{0}.{1}.{2}".format(module_name, test.__class__.__name__, test._testMethodName)
         else:
-            return self.name()
+            module_name = self.test_suite.__class__.__module__
+            yield "{0}.{1}.{2}".format(module_name, self.test_suite.__class__.__name__, self.test_suite._testMethodName)
 
     def get_status(self) -> int:
         """Get the status of the TestNode.
@@ -300,3 +306,24 @@ class TestTreeModel(QtCore.QAbstractItemModel):
             index = self.get_index_of_node(node)
             self.setData(index, reason, QtCore.Qt.ToolTipRole)
             self.setData(index, status, QtCore.Qt.DecorationRole)
+
+
+def indices_to_tests(test_indexes: Collection[QtCore.QModelIndex]) -> List[str]:
+    """Converts indexes into paths to tests."""
+
+    # Remove any child nodes if parent nodes are in the list. This will prevent duplicate tests from being run.
+    paths = []
+    for index in test_indexes:
+        node: TreeNode = index.internalPointer()
+        paths.extend(list(node.path()))
+
+    test_paths = []
+    for path in paths:
+        tokens = path.split(".")
+        for i in range(len(tokens) - 1):
+            p = ".".join(tokens[0: i + 1])
+            if p in paths:
+                break
+        else:
+            test_paths.append(path)
+    return test_paths

@@ -314,7 +314,13 @@ class TestsRunnerWidget(QtWidgets.QWidget):
     def __run_selected_tests_cb(self):
         """Cleans the console and runs selected tests."""
         self.output_console.clear()
-        self.controller.run_selected_tests(self.output_console)
+
+        indices = self.tests_tree_view.selectedIndexes()
+        if not indices:
+            self.output_console.write("ERROR: No tests were selected.")
+            return
+
+        self.controller.run_selected_tests(self.output_console, indices)
 
     def __run_failed_tests_cb(self):
         """Cleans the console and runs only the failed tests."""
