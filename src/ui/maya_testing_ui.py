@@ -212,6 +212,8 @@ class TestsRunnerWidget(QtWidgets.QWidget):
     Best to keep it decoupled from maya code that is not ready to be mocked.
     """
 
+    new_run_signal = QtCore.Signal(list)
+
     def __init__(self, parent=None, controller=None, *args, **kwargs):
         super(TestsRunnerWidget, self).__init__(parent=parent, *args, **kwargs)
 
@@ -308,23 +310,25 @@ class TestsRunnerWidget(QtWidgets.QWidget):
 
     def __run_all_tests_cb(self):
         """Cleans the console and runs all tests."""
-        self.output_console.clear()
+        self.new_run_signal.emit(self.controller.test_directories)
         self.controller.run_all_tests(self.output_console)
 
     def __run_selected_tests_cb(self):
         """Cleans the console and runs selected tests."""
-        self.output_console.clear()
 
         indices = self.tests_tree_view.selectedIndexes()
         if not indices:
             self.output_console.write("ERROR: No tests were selected.")
             return
 
+        # Reset state AFTER reading indices
+        self.new_run_signal.emit(self.controller.test_directories)
+
         self.controller.run_selected_tests(self.output_console, indices)
 
     def __run_failed_tests_cb(self):
         """Cleans the console and runs only the failed tests."""
-        self.output_console.clear()
+        self.new_run_signal.emit(self.controller.test_directories)
         self.controller.run_failed_tests(self.output_console)
 
 
@@ -368,6 +372,9 @@ class MayaTddDialog(QtWidgets.QDialog):
         """Links the controller and the settings dialog."""
         self.settings_dialog.updated_settings_signal.connect(self._update_model)
         self.settings_dialog.updated_settings_signal.connect(self._reset_output)
+
+        self.test_runner_wid.new_run_signal.connect(self._update_model)
+        self.test_runner_wid.new_run_signal.connect(self._reset_output)
 
     @QtCore.Slot(list)
     def _reset_output(self):

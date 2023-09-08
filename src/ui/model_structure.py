@@ -8,7 +8,7 @@ from typing import Collection, Tuple, List, Union
 from qtpy import QtCore, QtGui
 from enum import auto, IntEnum
 
-from src.utils import config_loader, module_finder
+from src.utils import config_loader
 from src import maya_test_case
 
 _config = config_loader.load_config()
@@ -151,7 +151,8 @@ class TreeNode(BaseTreeNode):
         else:
             return self.child(0).child(0).test_suite.__class__.__module__
 
-    def path(self):
+    # noinspection PyProtectedMember
+    def paths(self):
         """Gets the import path of the test.  Used for finding the test by name."""
 
         if isinstance(self.test_suite, unittest.TestSuite):
@@ -210,7 +211,7 @@ class TestTreeModel(QtCore.QAbstractItemModel):
     def __init__(self, root, parent=None):
         super().__init__(parent)
 
-        self.root_node = root
+        self.root_node: TreeNode = root
         self.node_lookup = {}
 
         # Create a lookup so that we can find the TestNode given a TestCase or TestSuite
@@ -309,13 +310,13 @@ class TestTreeModel(QtCore.QAbstractItemModel):
 
 
 def indices_to_tests(test_indexes: Collection[QtCore.QModelIndex]) -> List[str]:
-    """Converts indexes into paths to tests."""
+    """Converts indexes into paths to strings that can be used in unittest.Loader().loadTestsFromName(x)."""
 
     # Remove any child nodes if parent nodes are in the list. This will prevent duplicate tests from being run.
     paths = []
     for index in test_indexes:
         node: TreeNode = index.internalPointer()
-        paths.extend(list(node.path()))
+        paths.extend(list(node.paths()))
 
     test_paths = []
     for path in paths:

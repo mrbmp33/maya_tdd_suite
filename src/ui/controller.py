@@ -82,10 +82,6 @@ class TestsRunnerController:
         if not test_suite:
             test_suite = run_tests.get_tests(paths=self._test_directories or None)
 
-        # Reset model population
-        # root_node = model_structure.TreeNode(test_suite)
-        # self.model = model_structure.TestTreeModel(root_node)
-
         runner = unittest.TextTestRunner(
             stream=stream, verbosity=2, resultclass=maya_test_result.MayaTestResult
         )
