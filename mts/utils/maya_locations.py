@@ -5,8 +5,8 @@ import shutil
 import tempfile
 import uuid
 from typing import Dict, Optional
-import src
-from src.utils import config_loader
+import mts
+from mts.utils import config_loader
 
 _config = config_loader.load_config()
 

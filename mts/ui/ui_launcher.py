@@ -1,6 +1,6 @@
 from qtpy import QtWidgets, QtCore
-from src.ui.maya_testing_ui import SettingsDialog, TestsRunnerWidget, MayaTddDialog
-from src.ui.controller import TestsRunnerController
+from mts.ui.maya_testing_ui import SettingsDialog, TestsRunnerWidget, MayaTddDialog
+from mts.ui.controller import TestsRunnerController
 
 
 def launch_ui():

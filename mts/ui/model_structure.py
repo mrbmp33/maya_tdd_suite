@@ -8,8 +8,8 @@ from typing import Collection, Tuple, List, Union
 from qtpy import QtCore, QtGui
 from enum import auto, IntEnum
 
-from src.utils import config_loader
-from src import maya_test_case
+from mts.utils import config_loader
+from mts import maya_test_case
 
 _config = config_loader.load_config()
 logger = logging.getLogger(__name__)

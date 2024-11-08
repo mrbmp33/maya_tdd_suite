@@ -1,7 +1,7 @@
 import logging
 import unittest
 
-import src.maya_test_case as maya_test
+import mts.maya_test_case as maya_test
 
 _logger = logging.getLogger("maya_tdd")
 _logger.setLevel(logging.WARNING)

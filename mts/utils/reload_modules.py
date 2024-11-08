@@ -3,7 +3,7 @@ import os
 import pathlib
 import sys
 import importlib
-from src import run_tests
+from mts import run_tests
 
 _logger = logging.getLogger(__name__)
 

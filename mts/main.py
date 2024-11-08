@@ -18,14 +18,14 @@ def main():
         This function will parse the command line arguments and will launch the custom unittest runner module using the
         mayapy interpreter given with the chosen Maya version with a vanilla Maya environment.
         """
-    from src.run_tests import run_tests
-    from src.utils import maya_locations, config_loader
+    from mts.run_tests import run_tests
+    from mts.utils import maya_locations, config_loader
 
     _config = config_loader.load_config()
 
     # Define and get the arguments from the command line
     parser = argparse.ArgumentParser(description='Runs unit tests for a Maya module')
-    parser.add_argument('-m', '--maya', help='Maya version', type=int, default=2022)
+    parser.add_argument('-m', '--maya', help='Maya version', type=int, default=2024)
     
     parsed_args = parser.parse_args()
     

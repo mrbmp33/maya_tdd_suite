@@ -3,9 +3,9 @@ import unittest
 from typing import Optional, Collection, Union
 from qtpy import QtCore
 
-from src import run_tests, maya_test_result
-from src.ui import model_structure
-from src.utils import reload_modules, maya_locations, config_loader
+from mts import run_tests, maya_test_result
+from mts.ui import model_structure
+from mts.utils import reload_modules, maya_locations, config_loader
 
 _config = config_loader.load_config()
 

@@ -150,7 +150,7 @@ def run_tests(directories: Iterable[str] = None,
 def run_tests_from_command_line():
     """Runs tests in Maya standalone mode.
 
-    This is called when running *src/main.py* from the command line.
+    This is called when running *mts/main.py* from the command line.
     """
     from utils.standalone_context import MayaStandaloneContext
 

@@ -6,10 +6,10 @@ from typing import Optional
 from qtpy import QtWidgets, QtGui, QtCore
 from qtpy.uic import loadUi
 
-from src.utils import config_loader
-from src.ui.controller import TestsRunnerController
-from src.ui.model_structure import TreeNode
-from src.ui import output_console
+from mts.utils import config_loader
+from mts.ui.controller import TestsRunnerController
+from mts.ui.model_structure import TreeNode
+from mts.ui import output_console
 
 _logger = logging.getLogger(__name__)
 _logger.setLevel(logging.DEBUG)
@@ -182,7 +182,7 @@ class SettingsDialog(QtWidgets.QDialog):
 
     def load_settings(self):
         """Sets the state of the settings UI to be the same as the contents of the configuration file."""
-        from src.utils.parsing_utils import resolve_env_variables_strings
+        from mts.utils.parsing_utils import resolve_env_variables_strings
         import os
 
         _config = config_loader.load_config(resolve_vars=False)
