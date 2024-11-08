@@ -18,6 +18,6 @@ paths:
   import_paths:
   - $ENV{MAYA_TDD_ROOT_DIR}
   tests:
-  - /home/bernat/Dades/Documents/01_personal_projects/maya_tdd_suite/tests/test_other.py
-  - /home/bernat/Dades/Documents/01_personal_projects/maya_tdd_suite/tests/test_dummy.py
+  - $ENV{MAYA_TDD_ROOT_DIR}/tests/test_other.py
+  - $ENV{MAYA_TDD_ROOT_DIR}/tests/test_dummy.py
   tmp: $ENV{MAYA_TDD_ROOT_DIR}/tests/tmp
